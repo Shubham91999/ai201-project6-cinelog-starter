@@ -71,9 +71,13 @@ Manual testing steps:
 
 Final branch history:
 ```text
-docs: add PR response doc for watchlist review
-test: add watchlist service coverage
-feat: add watchlist service and routes
-feat: add watchlist model and app wiring
-docs: update PR response with branch history
+24fbf65 docs: update PR response with branch history
+d76c0cf docs: add PR response doc for watchlist review
+0321854 test: add watchlist service coverage
+5df3f7e feat: add watchlist service and routes
+a307e66 feat: add watchlist model and app wiring
 ```
+
+Screenshot of `git log --oneline` on the `feature/watchlist` branch:
+
+![git log --oneline](git-log-screenshot.png)
