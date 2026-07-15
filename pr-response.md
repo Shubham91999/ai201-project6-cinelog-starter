@@ -54,6 +54,29 @@ I rewrote the branch with an interactive rebase and kept the watchlist code UUID
 **How I verified no conflict remains:**
 I ran the watchlist test suite against the current UUID-based models and confirmed the feature works with UUID film IDs throughout. I also checked the branch-only log and confirmed the feature branch history is linear.
 
+## Stretch Features
+
+### Stretch 1 — `remove_from_watchlist()`
+**What I did:**
+I implemented `remove_from_watchlist(user_id, film_id)` in `services/watchlist_service.py`, following the same lookup-then-act pattern used elsewhere in the service. It queries for the matching `WatchlistEntry` and, if none exists, raises `NotInWatchlistError` instead of failing silently — mirroring how the add path raises on invalid state. I wired it to a `DELETE /watchlist/<user_id>/remove` endpoint in `routes/watchlist.py`, which returns 200 on success and 404 when the entry isn't present.
+
+**How I verified:**
+I added `test_remove_from_watchlist_removes_entry` (adds an entry, removes it, asserts the row count drops to zero) and `test_remove_from_watchlist_missing_entry_raises` (asserts `NotInWatchlistError` when removing something that was never added). Both pass under the full suite.
+
+### Stretch 2 — Second test (my choice of edge case)
+**What I did:**
+I added `test_add_to_watchlist_allows_private_entry`, which calls `add_to_watchlist()` with `public=False` and asserts the persisted entry is stored as private.
+
+**Why I chose this case:**
+The default-visibility decision (Comment 4) only holds up if the explicit override actually works — a public-by-default design is only defensible when privacy-sensitive callers can reliably opt out. This test locks in that contract so the `public` default can never silently ignore an explicit `False`, which is exactly the failure mode that would undermine the design argument I made in Comment 4.
+
+### Stretch 3 — Visibility toggle on the endpoint
+**What I did:**
+I added a `public` parameter to `add_to_watchlist()` (defaulting to `True`) and exposed it through the add endpoint, which reads `data.get("public", True)`. Callers can now set visibility explicitly at creation time rather than relying solely on the default.
+
+**How I verified:**
+The private-entry test above exercises the explicit `public=False` path, and the happy-path test confirms the default still resolves to `True` when `public` is omitted from the request body.
+
 ## PR Description
 This PR adds CineLog’s watchlist feature, which lets a user save films they want to watch later, view the list, and remove titles when they are no longer needed. The endpoints and service layer follow the same structure and naming conventions as the existing collection feature.
 
